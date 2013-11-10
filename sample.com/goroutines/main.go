@@ -2,12 +2,19 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 )
 
 func main() {
 	ch1 := make(chan int)
 	ch2 := make(chan int)
+
+	// 使うCPUの数を変更する。（この場合は2個。1未満を設定するとcurrentを変更しない）
+	// 実行中のPCのCPUがいくつ使えるかはNumCPU()を呼び出して確認する。
+	// 将来スケジューラの向上によって、呼び出さなくなるかも？
+	num := runtime.GOMAXPROCS(2)
+	fmt.Println(num)
 
 	go process1(ch1)
 	go process2(ch2)
