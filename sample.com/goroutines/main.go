@@ -12,21 +12,19 @@ func main() {
 	go process1(ch1)
 	go process2(ch2)
 
-	// 複数Channelを待ち受ける場合（全て受け取るパターン）
-	// time.Tickとtime.Afterを同時に待ち受けると永久にAfterの応答がない。（受け取れない？）
 	ch3 := time.Tick(1 * time.Second)
+	ch4 := time.After(5 * time.Second)
 	for {
 		select {
-			case res1 := <-ch1:
-				fmt.Printf("process1 Finished[%d]\n", res1)
-			case res2 := <-ch2:
-				fmt.Printf("process2 Finished[%d]\n", res2)
-			case <- time.After(5 * time.Second):
-				// timeパッケージを使ったタイムアウト（この方式にすると、goroutineの順番がずれる？）
-				fmt.Println("Finish!")
-				return
-			case <-ch3:
-				fmt.Printf("time.Tick\n")
+		case res1 := <-ch1:
+			fmt.Printf("process1 Finished[%d]\n", res1)
+		case res2 := <-ch2:
+			fmt.Printf("process2 Finished[%d]\n", res2)
+		case <-ch4:
+			fmt.Println("Finish!")
+			return
+		case <-ch3:
+			fmt.Printf("time.Tick\n")
 		}
 	}
 
