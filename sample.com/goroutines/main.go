@@ -2,25 +2,58 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
-type Data struct {
-	A int
-	B float32
+func main() {
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	ch3 := make(chan int)
+
+	go process1(ch1)
+	go process2(ch2)
+	go process3(ch3)
+
+	// 複数Channelを待ち受ける場合（全て受け取るパターン）
+L:
+	for {
+		select {
+			case res1 := <-ch1:
+				fmt.Printf("process1 Finished[%d]\n", res1)
+			case res2 := <-ch2:
+				fmt.Printf("process2 Finished[%d]\n", res2)
+			case <-ch3:
+				fmt.Println("Finish!")
+				break L
+		}
+	}
+
+fmt.Println("break!")
+	// Output:
+	// process1: [01]・・・が大量に。
+	// process2: [01] Finished.・・・が大量に。
+	// process1 Finished[1]
+	// process2 Finished[2]
+	// Finish!
 }
 
-func main() {
-	ch := make(chan Data)
+func process1(ch chan int) {
+	for i := 0; i < 10; i++ {
+		fmt.Printf("process1: [%02d]\n", i)
+	}
 
-	// goroutineの使い方（その1）
-	go func(ch_local chan Data) {
-		fmt.Println("Goroutineの処理")
-		ch_local<- Data{A: 1, B: 1.5}				// Channelに結果(1)を送る。
-	}(ch)
+	ch <- 1
+}
 
-	st := <-ch 					// Channelから結果(1)を受け取る。
+func process2(ch chan int) {
+	for i := 0; i < 10; i++ {
+		fmt.Printf("process2: [%02d]\n", i)
+	}
 
-	fmt.Println(st.A, st.B)
-	// Output:
-	// Goroutineの処理
+	ch <- 2
+}
+
+func process3(ch chan int) {
+	time.Sleep(5000000000)
+	ch <- 3
 }
