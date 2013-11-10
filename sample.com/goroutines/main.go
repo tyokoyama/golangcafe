@@ -2,32 +2,56 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 func main() {
-	ch := make(chan int, 10)				// Channelに長さを指定するとバッファリングできるようになる。
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	ch3 := make(chan int)
 
-	// goroutineの使い方（その2）を（10個）大量に呼び出す。
-	for i := 1; i < 11; i++ {
-		go useGoroutine(i, ch)
-	}
+	go process1(ch1)
+	go process2(ch2)
+	go process3(ch3)
 
-	for no := range ch {					// Channelから結果(no)を受け取る。
-		fmt.Printf("goroutine[%02d] Finished.\n", no)
+	// 複数Channelを待ち受ける場合（全て受け取るパターン）
+	for {
+		select {
+			case res1 := <-ch1:
+				fmt.Printf("process1 Finished[%d]\n", res1)
+			case res2 := <-ch2:
+				fmt.Printf("process2 Finished[%d]\n", res2)
+			case <-ch3:
+				fmt.Println("Finish!")
+				return
+		}
 	}
 
 	// Output:
-	// Goroutineの処理[01]・・・が大量に。
-	// goroutine[01] Finished.・・・が大量に。
+	// process1: [01]・・・が大量に。
+	// process2: [01] Finished.・・・が大量に。
+	// process1 Finished[1]
+	// process2 Finished[2]
+	// Finish!
 }
 
-func useGoroutine(no int, ch chan int) {
+func process1(ch chan int) {
 	for i := 0; i < 10; i++ {
-		fmt.Printf("Goroutineの処理[%02d]\n", no)
+		fmt.Printf("process1: [%02d]\n", i)
 	}
 
-	ch <- no 				// Channelに結果(no)を送る。
-	if no == 10 {			// バッファリング後、これ以上データを送ることがない場合は、明示的にクローズする必要がある。
-		close(ch)
+	ch <- 1
+}
+
+func process2(ch chan int) {
+	for i := 0; i < 10; i++ {
+		fmt.Printf("process2: [%02d]\n", i)
 	}
+
+	ch <- 2
+}
+
+func process3(ch chan int) {
+	time.Sleep(500000000)
+	ch <- 3
 }
