@@ -24,6 +24,10 @@ func main() {
 			case <-ch3:
 				fmt.Println("Finish!")
 				return
+			default:
+				// default文の所は毎回処理される。
+				fmt.Println("該当しない場合はここを通る")
+				time.Sleep(10000000)
 		}
 	}
 
