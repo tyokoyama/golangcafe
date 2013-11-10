@@ -8,11 +8,9 @@ import (
 func main() {
 	ch1 := make(chan int)
 	ch2 := make(chan int)
-	ch3 := make(chan int)
 
 	go process1(ch1)
 	go process2(ch2)
-	go process3(ch3)
 
 	// 複数Channelを待ち受ける場合（全て受け取るパターン）
 	for {
@@ -21,13 +19,10 @@ func main() {
 				fmt.Printf("process1 Finished[%d]\n", res1)
 			case res2 := <-ch2:
 				fmt.Printf("process2 Finished[%d]\n", res2)
-			case <-ch3:
+			case <- time.After(5 * time.Second):
+				// timeパッケージを使ったタイムアウト（この方式にすると、goroutineの順番がずれる？）
 				fmt.Println("Finish!")
 				return
-			default:
-				// default文の所は毎回処理される。
-				fmt.Println("該当しない場合はここを通る")
-				time.Sleep(10000000)
 		}
 	}
 
@@ -53,9 +48,4 @@ func process2(ch chan int) {
 	}
 
 	ch <- 2
-}
-
-func process3(ch chan int) {
-	time.Sleep(500000000)
-	ch <- 3
 }
