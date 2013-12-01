@@ -1,0 +1,2 @@
+{{template "sample2.txt"}}
+{{template "sample3.txt"}}
