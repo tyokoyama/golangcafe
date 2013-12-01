@@ -1,0 +1,4 @@
+計：{{len .}}件
+No, 名前, 好きなGoogle技術,
+{{range $index, $element := .}}{{$index}}, {{$element.Name}}, {{$element.Tech}},{{if .Flag}}*,{{end}}
+{{end}}
