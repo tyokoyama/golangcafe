@@ -30,7 +30,11 @@ func main() {
 
 	t := template.Must(template.ParseFiles("sample.txt", "sample2.txt", "sample3.txt"))
 
-	if err := t.Execute(os.Stdout, members); err != nil {
+	// if err := t.Execute(os.Stdout, members); err != nil {
+	// 	println("t.Execute Error: ", err)
+	// }
+
+	if err := t.ExecuteTemplate(os.Stdout, "sample2.txt", members); err != nil {
 		println("t.Execute Error: ", err)
 	}
 
