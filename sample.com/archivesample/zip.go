@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
+//	"path"
 )
 
 func main() {
@@ -24,13 +24,17 @@ func main() {
 		"files/b0044482_1413812.jpg",
 		"files/dart_flight_school.png",
 		"files/golang.txt",
+		"files/file/b0044482_1413812.jpg",
+		"files/file/dart_flight_school.png",
+		"files/file/golang.txt",
 	}
 
 	var f io.Writer
 	for _, filepath := range filepaths {
 		body := readFile(filepath)
 		if body != nil {
-			f, err = zw.Create(path.Base(filepath))
+//			f, err = zw.Create(path.Base(filepath))
+			f, err = zw.Create(filepath)
 			if err != nil {
 				log.Fatal(err)
 			}

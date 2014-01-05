@@ -16,7 +16,8 @@ func main() {
 	}
 	defer file.Close()
 
-	// Closeをしないと、展開できなくなる。
+	// Closeをしないと、展開できなくなる可能性がある。
+	// アーカイブユーティリティ（MacのFinderから）だとエラーで展開されない）	
 	tw := tar.NewWriter(file)
 	defer tw.Close()
 
