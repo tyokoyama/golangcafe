@@ -19,9 +19,7 @@ func main() {
 	}
 	defer file.Close()
 
-	reader := flate.NewReader(file)
-
-	tr := tar.NewReader(reader)
+	tr := tar.NewReader(flate.NewReader(file))
 
 	var header *tar.Header
 	for {
