@@ -3,7 +3,7 @@ package main
 import (
 	"archive/tar"
 	"compress/gzip"
-	"bytes"
+//	"bytes"
 	"io/ioutil"
 	"os"
 	"path"
@@ -33,8 +33,10 @@ func main() {
 		"files/golang.txt",
 	}
 
-	buf := new(bytes.Buffer)
-	tw := tar.NewWriter(buf)
+// Write()がio.Writerと同じなので、そのまま行ける。
+//	buf := new(bytes.Buffer)
+//	tw := tar.NewWriter(buf)
+	tw := tar.NewWriter(writer)
 	defer tw.Close()
 
 	for _, filepath := range filepaths {
@@ -56,6 +58,6 @@ func main() {
 		}
 	}
 
-	writer.Write(buf.Bytes())
-	writer.Flush()
+//	writer.Write(buf.Bytes())
+//	writer.Flush()
 }
