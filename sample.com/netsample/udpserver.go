@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"log"
 	"net"
@@ -8,7 +9,7 @@ import (
 
 func main() {
 
-	udpAddr, err := net.ResolveUDPAddr("udp", "localhost:22000")
+	udpAddr, err := net.ResolveUDPAddr("udp", ":22000")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -29,27 +30,38 @@ func main() {
 	}
 }
 
-func receiveGoroutine(conn net.Conn, ch chan<- int) {
+func receiveGoroutine(conn *net.UDPConn, ch chan<- int) {
 	var count uint32 = 1
 
 	for i := 0; i < 2; i++ {
-		var err error
+		var data [1024]byte
 
-		log.Printf("Send To Client %d\n", count)
-		err = binary.Write(conn, binary.LittleEndian, count)
+		_, addr, err := conn.ReadFrom(data[:])
 		if err != nil {
-			log.Printf("Send: %v\n", err)
-			break
+			log.Printf("Recv: %v", err)
 		}
 
-		err = binary.Read(conn, binary.BigEndian, &count)
+		buf := bytes.NewBuffer(data[:])
+		err = binary.Read(buf, binary.BigEndian, &count)
 		if err != nil {
-			log.Printf("Buffer: %d\n", err)
+			log.Printf("Buffer: %v\n", err)
 			break
 		}
 		log.Printf("Receive From Client %d\n", count)
 
 		count++
+
+		bufW := new(bytes.Buffer)
+		err = binary.Write(bufW, binary.LittleEndian, count)
+		if err != nil {
+			log.Printf("Buffer: %v\n", err)
+		}
+		_, err = conn.WriteTo(bufW.Bytes(), addr)
+		if err != nil {
+			log.Printf("Send: %v\n", err)
+			break
+		}
+
 	}
 
 	if err := conn.Close(); err != nil {

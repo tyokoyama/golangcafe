@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"log"
 	"net"
+	"time"
 )
 
 func main() {
@@ -26,7 +27,15 @@ func main() {
 func connectGoroutine(ch chan<- int, pos int) {
 	var recvData uint32
 
-	conn, err := net.Dial("tcp", "localhost:22000")
+	// net.Dial() タイムアウトがないConnect
+	// net.DialTimeout() タイムアウト検知するConnect
+	// -5とかだとi/o timeoutと出るが…。
+	// Dialerからtimeoutを設定する方法もあるが…。
+
+	conn, err := net.DialTimeout("tcp", "192.168.0.6:8888", 5 * time.Second)
+	// conn, err := net.Dial("tcp", "localhost:22000")
+	// dialer := net.Dialer{Timeout: 10 * time.Second}
+	// conn, err := dialer.Dial("tcp", "localhost:22000")
 	if err != nil {
 		log.Fatalln(err)
 	}

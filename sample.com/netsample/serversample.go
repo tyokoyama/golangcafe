@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"log"
 	"net"
+	"time"
 )
 
 func main() {
@@ -28,6 +29,9 @@ func main() {
 func receiveGoroutine(conn net.Conn) {
 	var count uint32 = 1
 
+	tcpConn := conn.(*net.TCPConn)
+	tcpConn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
 	for i := 0; i < 2; i++ {
 		var err error
 
@@ -40,7 +44,7 @@ func receiveGoroutine(conn net.Conn) {
 
 		err = binary.Read(conn, binary.BigEndian, &count)
 		if err != nil {
-			log.Printf("Buffer: %d\n", err)
+			log.Printf("Buffer: %v\n", err)
 			break
 		}
 		log.Printf("Receive From Client %d\n", count)
