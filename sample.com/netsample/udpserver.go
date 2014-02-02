@@ -51,6 +51,7 @@ func receiveGoroutine(conn *net.UDPConn, ch chan<- int) {
 
 		count++
 
+		log.Printf("Send To Client %d\n", count)
 		bufW := new(bytes.Buffer)
 		err = binary.Write(bufW, binary.LittleEndian, count)
 		if err != nil {
