@@ -10,7 +10,7 @@ func main() {
 	// target = 送信先のアドレス
 	// myAddress = メールを送信するアカウントのメールアドレス
 	target := "target address"
-	myAddress := "your gmail address"
+	myAddress := "your mail address"
 
 	var to []string = []string{target}
 
@@ -21,6 +21,8 @@ func main() {
 	arg := flag.Arg(0)
 	log.Printf("arg = %s", arg)
 
+	// アカウントのパスワードを第1引数に入れる。
+	// 二段階認証の設定がONになっている場合は、アプリケーション固有のパスワードを生成する必要がある。
 	// Gmailのsmtpを使うためのパスワードを生成するには、以下を参照。
 	// （※アカウントのパスワードではない）
 	// https://support.google.com/accounts/answer/185833
