@@ -9,8 +9,8 @@ import (
 
 func TestParseAddress(t *testing.T) {
 	// ドキュメントにあるメールアドレスでチェック
-//	address, err := mail.ParseAddress("Barry Gibbs <bg@example.com>")
-	address, err := mail.ParseAddress("bg@example.com")
+	address, err := mail.ParseAddress("Barry Gibbs <bg@example.com>")
+//	address, err := mail.ParseAddress("bg@example.com")
 	if err != nil {
 		t.Errorf("%v", err)
 	}
