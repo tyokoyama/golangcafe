@@ -25,6 +25,9 @@ func main() {
 				return
 			}
 		case <- tc:
+			// Windowsにはsyscall.Kill()が定義されていないので、コンパイルエラーになる。
+			// （Windows用のソースファイルが無い！）
+			// syscallパッケージに定義されている、Signalの定義も怪しいかも？
 			syscall.Kill(syscall.Getpid(), syscall.SIGHUP)
 		}
 	}
