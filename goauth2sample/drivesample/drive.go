@@ -13,9 +13,9 @@ var (
 	cachefile = "cache.json"
 
     // clientID、secret、redirect_urlはDevelopers ConsoleのCredentialsからコピー＆ペーストして下さい。
-    clientID = "832785008883.apps.googleusercontent.com"
-    secret = "ls96Z7SlSW4YLyfG0QzQWyi9"
-    redirect_url = "urn:ietf:wg:oauth:2.0:oob"
+    clientID = "[your clientID]"
+    secret = "[your secret]"
+    redirect_url = "[your redirectURIs]"
 	scope = "https://www.googleapis.com/auth/drive"
     // request_urlは使用するAPIのURLを指定して下さい。（この例ではCalendarList）
 	request_url = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
