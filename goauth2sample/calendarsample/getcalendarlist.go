@@ -8,20 +8,18 @@ package main
 
 import (
 	"code.google.com/p/goauth2/oauth"
+    "golangcafe/goauth2sample/authorize"
 
     "flag"
     "fmt"
     "io"
+    "log"
     "os"
 )
 
 var (
 	cachefile = "cache.json"
 
-    // clientID、secret、redirect_urlはDevelopers ConsoleのCredentialsからコピー＆ペーストして下さい。
-    clientID = "[your clientID]"
-    secret = "[your secret]"
-    redirect_url = "[your redirectURIs]"
 	scope = "https://www.googleapis.com/auth/calendar"
     // request_urlは使用するAPIのURLを指定して下さい。（この例ではCalendarList）
 	request_url = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
@@ -32,13 +30,23 @@ var (
 func main() {
     flag.Parse()
 
+    // 認証情報の取得（何もなければ、入力を促します）
+    // clientID、secret、redirect_urlはDevelopers ConsoleのCredentialsからコピー＆ペーストして下さい。
+    var auth authorize.Auth
+    var err error
+    if auth, err = authorize.GetAuthInfo(); err != nil {
+        log.Fatalln("GetAuthInfo: ", err)
+    }
+
+    fmt.Println("Start Execute API")
+
     // 認証コードを引数で受け取る。
     code := flag.Arg(0)
 
     config := &oauth.Config{
-            ClientId:     clientID,
-            ClientSecret: secret,
-            RedirectURL:  redirect_url,
+            ClientId:     auth.ClientID,
+            ClientSecret: auth.Secret,
+            RedirectURL:  auth.RedirectUrl,
             Scope:        scope,
             AuthURL:      request_token_url,
             TokenURL:     auth_token_url,
@@ -48,7 +56,7 @@ func main() {
     transport := &oauth.Transport{Config: config}
 
     // キャッシュからトークンファイルを取得
-    _, err := config.TokenCache.Token()
+    _, err = config.TokenCache.Token()
     if err != nil {
         // キャッシュなし
 
