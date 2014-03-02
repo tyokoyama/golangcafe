@@ -22,14 +22,12 @@ func (w *binWriter) Write(v interface{}) {
     if w.err != nil {
         return
     }
-    switch v.(type) {
+    switch x := v.(type) {
     case string:
-        s := v.(string)
-        w.Write(int32(len(s)))
-        w.Write([]byte(s))
+        w.Write(int32(len(x)))
+        w.Write([]byte(x))
     case int:
-        i := v.(int)
-        w.Write(int64(i))
+        w.Write(int64(x))
     default:
         if w.err = binary.Write(w.w, binary.LittleEndian, v); w.err == nil {
             w.size += int64(binary.Size(v))
