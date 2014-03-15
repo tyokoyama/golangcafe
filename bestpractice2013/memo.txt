@@ -89,4 +89,29 @@ switch文の:=の定義を使え！
 　　　　　　TestFunc型はEval()を実装しているので、interfaceを実装していることになる。
 
 
+その１４
+　　APIで非同期にするのは避けよう！
+　　　順番にAPIを利用したい時はどうすればいいのか？
+　　　　同期APIを用意すると、並列実行が簡単に呼び出せる。
+　　　　　（※runtime.GOMAXPROCS(2)とかすると、順番がおかしくなるが、呼び出し順をどうするか？という議論ではない！）
 
+
+その１５
+　　goroutineと通信するための構造体のメンバのChannelか、単体のChannelを使え！
+　　　（chanのバッファが0の時は、他のGoroutinesがChannelを受け取らないとGoroutineがブロックされる。chanのバッファが1の時は、1個はバッファに置けるので、Goroutineがブロックされず、突き抜ける。）
+　　
+
+その１６
+　　Buffered Channelを使って、goroutineのリークを避けよう！
+　　　channelに書き込むと、goroutineはブロックされる。
+　　　goroutineはchannelの参照を握る
+　　　したがって、channelはガベージコレクトされることはない。
+
+　　　goroutinesの切り替わりは「明示的なブロック」で発生するので、
+　　　今回のようにバッファがないchannelだと、goroutineの切り替わりが発生するので、goroutineの処理が終わる前にchannelの受信待ちが終了してしまうことがある。すると、参照が残り、リークする。
+　　　
+その１７
+　　quit chanを使って、goroutinesのリークを避けよう！
+　　　close(quit)を行うと、channelに受信しない事が明示される。
+　　　goroutineの切り替わりを意識したコードを書くことで、channelのリークを防ぐことができる。
+     chan(struct{})はクローズ（終了）用なので、誰もChannelに送信できないようにするために、空の構造体にしている。
