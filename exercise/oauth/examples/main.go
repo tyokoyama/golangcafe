@@ -18,10 +18,6 @@ func main() {
 		panic("requestToken is Empty")
 	}
 
-	if requestToken.Get("oauth_token") == token {
-		panic("requestToken no change")
-	}
-
 	loginURL := oauth.GetLoginUrl(requestToken.Get("oauth_token"))
 
 	fmt.Println(loginURL)
