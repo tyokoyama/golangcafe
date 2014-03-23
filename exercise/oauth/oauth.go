@@ -32,8 +32,8 @@ const (
 	VERIFIER_PARAM         = "oauth_verifier"
 	VERSION_PARAM          = "oauth_version"
 
-	CONSUMER_KEY      = "jMTASlyTnRNmcLb0qFiw"
-	CONSUMER_SECRET   = "edejJagYahmI6JcS3qs3Lh01uJDcrKrNtwa7ICT9o"
+	CONSUMER_KEY      = "7E7NkNRyseZTWxGSkNHQ"
+	CONSUMER_SECRET   = "qsZecZRe391NDfzY4F24BzQnoWNQhbMyzWqe6SyQ"
 	REQUEST_TOKEN_URL = "https://api.twitter.com/oauth/request_token"
 	AUTHORIZE_URL     = "https://api.twitter.com/oauth/authorize"
 	ACCESS_TOKEN_URL  = "https://api.twitter.com/oauth/access_token"
@@ -74,16 +74,18 @@ func CreateSignature() string {
 	// ハッシュ計算
 	key := url.QueryEscape(CONSUMER_SECRET) + "&" + url.QueryEscape("")
 	fmt.Println(key)
-	hashfun := hmac.New(sha1.New, []byte(key))
-	hashfun.Write([]byte(result))
 
-	rawsignature := hashfun.Sum(nil)
+	return Hash(key, result)
+	// hashfun := hmac.New(sha1.New, []byte(key))
+	// hashfun.Write([]byte(result))
 
-	// base64エンコード
-	base64signature := make([]byte, base64.StdEncoding.EncodedLen(len(rawsignature)))
-	base64.StdEncoding.Encode(base64signature, rawsignature)
+	// rawsignature := hashfun.Sum(nil)
 
-	return string(base64signature)
+	// // base64エンコード
+	// base64signature := make([]byte, base64.StdEncoding.EncodedLen(len(rawsignature)))
+	// base64.StdEncoding.Encode(base64signature, rawsignature)
+
+	// return string(base64signature)
 }
 
 // リクエストトークン
