@@ -17,5 +17,5 @@ func Hash(key, target string) string {
 	base64signature := make([]byte, base64.StdEncoding.EncodedLen(len(rawsignature)))
 	base64.StdEncoding.Encode(base64signature, rawsignature)
 
-	return string(rawsignature)
+	return string(base64signature)
 }

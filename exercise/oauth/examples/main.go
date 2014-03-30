@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"github.com/tyokoyama/golangcafe/exercise/oauth"
+	"time"
 )
 
 func main() {

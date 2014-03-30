@@ -1,9 +1,6 @@
 package oauth
 
 import (
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -37,7 +34,6 @@ const (
 	REQUEST_TOKEN_URL = "https://api.twitter.com/oauth/request_token"
 	AUTHORIZE_URL     = "https://api.twitter.com/oauth/authorize"
 	ACCESS_TOKEN_URL  = "https://api.twitter.com/oauth/access_token"
-
 )
 
 var paramMap map[string]string
@@ -49,25 +45,15 @@ func CreateSignature() string {
 	// requestToken生成用の擬似パラメータ作成
 	result := "GET" + "&" + url.QueryEscape(REQUEST_TOKEN_URL) + "&"
 
-	now := time.Now()
-	timestamp := now.Unix()
-	nonce := rand.New(rand.NewSource(now.UnixNano()))
+	param := newParameter("oob", CONSUMER_KEY, CONSUMER_SECRET)
+	result += param.getRequestTokenParam()
 
-	nonce_value := strconv.FormatInt(nonce.Int63(), 10)
-	// パラメータはソートされている必要がある。
-	result += url.QueryEscape(CALLBACK_PARAM+"="+"oob") + url.QueryEscape("&")
-	result += url.QueryEscape(CONSUMER_KEY_PARAM+"="+CONSUMER_KEY) + url.QueryEscape("&")
-	result += url.QueryEscape(NONCE_PARAM+"="+nonce_value) + url.QueryEscape("&")
-	result += url.QueryEscape(SIGNATURE_METHOD_PARAM+"="+SIGNATURE_METHOD) + url.QueryEscape("&")
-	result += url.QueryEscape(TIMESTAMP_PARAM+"="+strconv.FormatInt(timestamp, 10)) + url.QueryEscape("&")
-	result += url.QueryEscape(VERSION_PARAM + "=" + OAUTH_VERSION)
-
-	paramMap[VERSION_PARAM] = OAUTH_VERSION
-	paramMap[SIGNATURE_METHOD_PARAM] = SIGNATURE_METHOD
-	paramMap[TIMESTAMP_PARAM] = strconv.FormatInt(timestamp, 10)
-	paramMap[NONCE_PARAM] = nonce_value
-	paramMap[CONSUMER_KEY_PARAM] = CONSUMER_KEY
-	paramMap[CALLBACK_PARAM] = "oob"
+	paramMap[VERSION_PARAM] = param.Version
+	paramMap[SIGNATURE_METHOD_PARAM] = param.SignatureMethod
+	paramMap[TIMESTAMP_PARAM] = param.Timestamp
+	paramMap[NONCE_PARAM] = param.Nonce
+	paramMap[CONSUMER_KEY_PARAM] = param.ConsumerKey
+	paramMap[CALLBACK_PARAM] = param.Callback
 
 	fmt.Println(result)
 
@@ -76,16 +62,6 @@ func CreateSignature() string {
 	fmt.Println(key)
 
 	return Hash(key, result)
-	// hashfun := hmac.New(sha1.New, []byte(key))
-	// hashfun.Write([]byte(result))
-
-	// rawsignature := hashfun.Sum(nil)
-
-	// // base64エンコード
-	// base64signature := make([]byte, base64.StdEncoding.EncodedLen(len(rawsignature)))
-	// base64.StdEncoding.Encode(base64signature, rawsignature)
-
-	// return string(base64signature)
 }
 
 // リクエストトークン
@@ -151,7 +127,7 @@ func GetAccessToken(verifyCode string, values url.Values) (url.Values, error) {
 	paramMap = make(map[string]string)
 
 	// AccessToken生成用の擬似パラメータ作成
-	result := "GET" + "&" + url.QueryEscape(ACCESS_TOKEN_URL) + "&" + url.QueryEscape(values.Get("oauth_token_secret"))
+	result := "GET" + "&" + url.QueryEscape(ACCESS_TOKEN_URL) + "&" + url.QueryEscape(values.Get("oauth_token_secret")) + url.QueryEscape("&")
 
 	now := time.Now()
 	timestamp := now.Unix()
@@ -182,14 +158,8 @@ func GetAccessToken(verifyCode string, values url.Values) (url.Values, error) {
 	// ハッシュ計算
 	key := url.QueryEscape(CONSUMER_SECRET) + "&" + url.QueryEscape(values.Get("oauth_token_secret"))
 	fmt.Println(key)
-	hashfun := hmac.New(sha1.New, []byte(key))
-	hashfun.Write([]byte(result))
 
-	rawsignature := hashfun.Sum(nil)
-
-	// base64エンコード
-	base64signature := make([]byte, base64.StdEncoding.EncodedLen(len(rawsignature)))
-	base64.StdEncoding.Encode(base64signature, rawsignature)
+	base64signature := Hash(key, result)
 
 	var err error
 	var req *http.Request
@@ -263,7 +233,7 @@ func RequestAPI(accessToken url.Values, method, resource string, param map[strin
 	result += url.QueryEscape(CONSUMER_KEY_PARAM+"="+CONSUMER_KEY) + url.QueryEscape("&")
 	result += url.QueryEscape(NONCE_PARAM+"="+nonce_value) + url.QueryEscape("&")
 	result += url.QueryEscape(SIGNATURE_METHOD_PARAM+"="+SIGNATURE_METHOD) + url.QueryEscape("&")
-//	result += url.QueryEscape(param["status"]) + url.QueryEscape("&")
+	//	result += url.QueryEscape(param["status"]) + url.QueryEscape("&")
 	result += url.QueryEscape(TIMESTAMP_PARAM+"="+strconv.FormatInt(timestamp, 10)) + url.QueryEscape("&")
 	// // AccessTokenを取得する場合はrequestTokenとverifyCodeを含める必要がある
 	result += url.QueryEscape(TOKEN_PARAM+"="+accessToken.Get("oauth_token")) + url.QueryEscape("&")
@@ -275,9 +245,9 @@ func RequestAPI(accessToken url.Values, method, resource string, param map[strin
 	// TODO: スペースのエンコードが"+"になるとまずいので、何か対策が必要。
 	// TODO: 本文のデータ内の%XX系の記号は%25XXに変換して、ハッシュ計算する必要がある。
 	re := regexp.MustCompile("\\++")
-	result += url.QueryEscape("&") + url.QueryEscape("status" + "=" + re.ReplaceAllString(url.QueryEscape(param["status"]), "%20"))
+	result += url.QueryEscape("&") + url.QueryEscape("status"+"="+re.ReplaceAllString(url.QueryEscape(param["status"]), "%20"))
 
-fmt.Println(result)
+	fmt.Println(result)
 
 	paramMap[VERSION_PARAM] = OAUTH_VERSION
 	paramMap[SIGNATURE_METHOD_PARAM] = SIGNATURE_METHOD
@@ -287,19 +257,13 @@ fmt.Println(result)
 	// paramMap[CALLBACK_PARAM] = "oob"
 	paramMap[TOKEN_PARAM] = accessToken.Get("oauth_token")
 	// paramMap[VERIFIER_PARAM] = verifyCode
-//	paramMap["status"] = param["status"]
+	//	paramMap["status"] = param["status"]
 
 	// ハッシュ計算
 	key := url.QueryEscape(CONSUMER_SECRET) + "&" + url.QueryEscape(accessToken.Get("oauth_token_secret"))
 	fmt.Println(key)
-	hashfun := hmac.New(sha1.New, []byte(key))
-	hashfun.Write([]byte(result))
 
-	rawsignature := hashfun.Sum(nil)
-
-	// base64エンコード
-	base64signature := make([]byte, base64.StdEncoding.EncodedLen(len(rawsignature)))
-	base64.StdEncoding.Encode(base64signature, rawsignature)
+	base64signature := Hash(key, result)
 
 	paramMap[SIGNATURE_PARAM] = string(base64signature)
 
@@ -328,7 +292,7 @@ fmt.Println(result)
 	oauthHdr += NONCE_PARAM + "=\"" + paramMap[NONCE_PARAM] + "\","
 	oauthHdr += SIGNATURE_PARAM + "=\"" + url.QueryEscape(string(base64signature)) + "\","
 	oauthHdr += SIGNATURE_METHOD_PARAM + "=\"" + paramMap[SIGNATURE_METHOD_PARAM] + "\","
-//	oauthHdr += "status=\"" + url.QueryEscape(paramMap["status"]) + "\","
+	//	oauthHdr += "status=\"" + url.QueryEscape(paramMap["status"]) + "\","
 	oauthHdr += TIMESTAMP_PARAM + "=\"" + paramMap[TIMESTAMP_PARAM] + "\","
 	oauthHdr += TOKEN_PARAM + "=\"" + paramMap[TOKEN_PARAM] + "\","
 	// oauthHdr += VERIFIER_PARAM + "=\"" + paramMap[VERIFIER_PARAM] + "\","
