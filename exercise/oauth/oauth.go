@@ -29,8 +29,8 @@ const (
 	VERIFIER_PARAM         = "oauth_verifier"
 	VERSION_PARAM          = "oauth_version"
 
-	CONSUMER_KEY      = "7E7NkNRyseZTWxGSkNHQ"
-	CONSUMER_SECRET   = "qsZecZRe391NDfzY4F24BzQnoWNQhbMyzWqe6SyQ"
+	CONSUMER_KEY      = "vJZnwlmCpKPm6Odvpa4MQ"
+	CONSUMER_SECRET   = "TjTOQ0OLiKqHeJt6QxGEPp4ToBF34sBprUMjfqXBaJ8"
 	REQUEST_TOKEN_URL = "https://api.twitter.com/oauth/request_token"
 	AUTHORIZE_URL     = "https://api.twitter.com/oauth/authorize"
 	ACCESS_TOKEN_URL  = "https://api.twitter.com/oauth/access_token"
