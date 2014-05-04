@@ -1,14 +1,15 @@
 package main
 
 import (
-	"os"
-	"os/exec"
+	"fmt"
 	"io"
 	"log"
+	"os"
+	"os/exec"
 	"time"
-	"fmt"
 )
 
+// 参考URL: http://goo.gl/tkRU1z
 func main() {
 	cmd := exec.Command("cat")
 	stdout, err := cmd.StdoutPipe()
@@ -34,6 +35,14 @@ func main() {
 	}(stdin)
 
 	go io.Copy(os.Stdout, stdout)
+	// 下のコードだと、リアルタイムに出力されなくなる。
+	// go func(out io.ReadCloser) {
+	// 	buf := new(bytes.Buffer)
+
+	// 	io.Copy(buf, out)
+
+	// 	fmt.Println(buf.String())
+	// }(stdout)
 
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
