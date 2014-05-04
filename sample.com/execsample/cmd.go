@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
+//	"os"
 	"os/exec"
 	"time"
+	"bytes"
+	"bufio"
 )
 
 // 参考URL: http://goo.gl/tkRU1z
 func main() {
+	// cmd := exec.Command("/bin/bash")
 	cmd := exec.Command("cat")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -27,6 +30,7 @@ func main() {
 	}
 
 	go func(in io.WriteCloser) {
+//		in.Write([]byte("ls"))
 		for i := 0; i < 5; i++ {
 			in.Write([]byte(fmt.Sprintf("hoge_%d\n", i)))
 			time.Sleep(1 * time.Second)
@@ -34,15 +38,24 @@ func main() {
 		in.Close()
 	}(stdin)
 
-	go io.Copy(os.Stdout, stdout)
-	// 下のコードだと、リアルタイムに出力されなくなる。
-	// go func(out io.ReadCloser) {
-	// 	buf := new(bytes.Buffer)
+//	go io.Copy(os.Stdout, stdout)
+	//下のコードだと、リアルタイムに出力されなくなる。
+	go func(out io.ReadCloser) {
+		reader := bufio.NewReader(out)
 
-	// 	io.Copy(buf, out)
-
-	// 	fmt.Println(buf.String())
-	// }(stdout)
+		var err error
+		var line []byte
+		for {
+			buf := new(bytes.Buffer)
+			line, _, err = reader.ReadLine()
+			if err != nil {
+				break
+			}
+			buf.Write(line)
+			fmt.Println(buf.String())
+		}
+//		io.Copy(buf, out)
+	}(stdout)
 
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
