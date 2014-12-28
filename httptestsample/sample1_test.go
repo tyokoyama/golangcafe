@@ -77,7 +77,7 @@ func TestAndroid(t *testing.T) {
 	var requests [2]*http.Request
 	var err error
 
-	ts := httptest.NewServer(sampleHandler)
+	ts := httptest.NewServer(sample2Handler)
 	defer ts.Close()
 
 	requests[0], err = http.NewRequest("GET", ts.URL, nil)
@@ -115,7 +115,7 @@ func TestAndroid(t *testing.T) {
 				t.Fatalf("Status Error %d", r.StatusCode)
 			}
 
-			if "Not Found." != string(data) {
+			if "Not Found.\n" != string(data) {
 				t.Fatalf("Data Error. %v", string(data))
 			}
 
