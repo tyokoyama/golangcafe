@@ -1,0 +1,7 @@
+=== RUN   TestSample
+sample
+--- FAIL: TestSample (0.00s)
+	sample_test.go:10: Error Sample
+FAIL
+exit status 1
+FAIL	github.com/tyokoyama/golangcafe/go110sample	0.003s
