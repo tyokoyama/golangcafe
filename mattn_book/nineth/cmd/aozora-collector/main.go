@@ -1,8 +1,15 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"net/url"
+	"path"
 	"regexp"
 	"strings"
 
@@ -14,7 +21,7 @@ type Entry struct {
 	Author   string
 	TitleID  string
 	Title    string
-	InfoURL  string
+	SiteURL  string
 	ZipURL   string
 }
 
@@ -24,6 +31,7 @@ func findEntries(siteURL string) ([]Entry, error) {
 		return nil, err
 	}
 	// 処理
+	entries := []Entry{}
 	pat := regexp.MustCompile(`.*/cards/([0-9]+)/card([0-9]+).html$`)
 	doc.Find("ol li a").Each(func(n int, elem *goquery.Selection) {
 		token := pat.FindStringSubmatch(elem.AttrOr("href", ""))
@@ -31,11 +39,22 @@ func findEntries(siteURL string) ([]Entry, error) {
 			return
 		}
 
+		title := elem.Text()
 		pageURL := fmt.Sprintf("https://www.aozora.gr.jp/cards/%s/card%s.html", token[1], token[2])
-		_, zipURL := findAuthorAndZIP(pageURL)
+		author, zipURL := findAuthorAndZIP(pageURL)
+		if zipURL != "" {
+			entries = append(entries, Entry{
+				AuthorID: token[1],
+				Author:   author,
+				TitleID:  token[2],
+				Title:    title,
+				SiteURL:  siteURL,
+				ZipURL:   zipURL,
+			})
+		}
 		println(zipURL)
 	})
-	return nil, nil
+	return entries, nil
 }
 
 func findAuthorAndZIP(siteURL string) (string, string) {
@@ -55,7 +74,58 @@ func findAuthorAndZIP(siteURL string) (string, string) {
 	})
 
 	// 処理
-	return author, zipURL
+	if zipURL == "" {
+		return author, ""
+	}
+	if strings.HasPrefix(zipURL, "http://") || strings.HasPrefix(zipURL, "https://") {
+		return author, zipURL
+	}
+
+	u, err := url.Parse(siteURL)
+	if err != nil {
+		return author, ""
+	}
+
+	u.Path = path.Join(path.Dir(u.Path), zipURL)
+	return author, u.String()
+}
+
+func extractText(zipURL string) (string, error) {
+	// 処理
+	resp, err := http.Get(zipURL)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	r, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
+	if err != nil {
+		return "", err
+	}
+
+	for _, file := range r.File {
+		if path.Ext(file.Name) == ".txt" {
+			f, err := file.Open()
+			if err != nil {
+				return "", err
+			}
+
+			b, err := io.ReadAll(f)
+			f.Close()
+			if err != nil {
+				return "", err
+			}
+
+			return string(b), nil
+		}
+	}
+	return "", errors.New("contents not found")
 }
 
 func main() {
@@ -67,6 +137,12 @@ func main() {
 	}
 
 	for _, entry := range entries {
-		fmt.Println(entry.Title, entry.ZipURL)
+		content, err := extractText(entry.ZipURL)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		fmt.Println(entry.SiteURL)
+		fmt.Println(content)
 	}
 }
