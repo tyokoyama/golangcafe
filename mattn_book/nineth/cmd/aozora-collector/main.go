@@ -35,7 +35,7 @@ func setupDB(dsn string) (*sql.DB, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+//	defer db.Close()
 
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS authors(author_id TEXT, author TEXT, PRIMARY KEY(author_id))`,
