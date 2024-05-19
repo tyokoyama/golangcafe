@@ -1,4 +1,4 @@
-package main
+package collector 
 
 import (
 	"archive/zip"
@@ -208,37 +208,4 @@ func extractText(zipURL string) (string, error) {
 		}
 	}
 	return "", errors.New("contents not found")
-}
-
-func main() {
-	db, err := setupDB("database.sqlite")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	listURL := "https://www.aozora.gr.jp/index_pages/person879.html"
-
-	entries, err := findEntries(listURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("found %d entries\n", len(entries))
-
-	for _, entry := range entries {
-		log.Printf("adding %+v\n", entry)
-		content, err := extractText(entry.ZipURL)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		err = addEntry(db, &entry, content)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		// fmt.Println(entry.SiteURL)
-		// fmt.Println(content)
-	}
 }
