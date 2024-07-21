@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"errors"
 	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
-	"text/template"
+	"html/template"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -18,6 +20,12 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/extra/bundebug"
 )
+
+//go:embed static
+var static embed.FS
+
+//go:embed templates
+var templates embed.FS
 
 type Todo struct {
 	bun.BaseModel `bun:"table:todos,alias:t"`
@@ -58,6 +66,18 @@ func main() {
 	}
 
 	e := echo.New()
+
+	if l, ok:= e.Logger.(*log.Logger); ok {
+		l.SetLevel(log.INFO)
+	}
+
+	e.Renderer = &Template {
+		templates: template.Must(template.New("").
+				Funcs(template.FuncMap{
+					"FormatDateTime": formatDateTime,
+				}).ParseFS(templates, "templates/*")),
+	}
+
 	e.GET("/", func(c echo.Context) error {
 		var todos []Todo
 		ctx := context.Background()
@@ -106,6 +126,7 @@ func main() {
 				}
 			}
 			if err != nil {
+				println(err)
 				e.Logger.Error(err)
 				err = errors.New("Cannot update")
 			}
@@ -115,7 +136,14 @@ func main() {
 		}
 		return c.Redirect(http.StatusFound, "/")
 	})
-	e.Logger.Fatal(e.Start(":8989"))
+
+	staticFs, err := fs.Sub(static, "static")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fileServer := http.FileServer(http.FileSystem(http.FS(staticFs)))
+	e.GET("/static/*", echo.WrapHandler(http.StripPrefix("/static/", fileServer)))
+	e.Logger.Fatal(e.Start(":8080"))
 }
 
 func customFunc(todo *Todo) func([]string) []error {
