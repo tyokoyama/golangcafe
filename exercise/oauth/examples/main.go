@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"github.com/tyokoyama/golangcafe/exercise/oauth"
+	"time"
 )
 
 func main() {
@@ -16,10 +16,6 @@ func main() {
 
 	if requestToken == nil {
 		panic("requestToken is Empty")
-	}
-
-	if requestToken.Get("oauth_token") == token {
-		panic("requestToken no change")
 	}
 
 	loginURL := oauth.GetLoginUrl(requestToken.Get("oauth_token"))
